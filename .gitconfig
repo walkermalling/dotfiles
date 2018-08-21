@@ -1,0 +1,8 @@
+[user]
+	signingkey = walker.malling@gmail.com
+	name = Walker Malling
+	email = walker.malling@gmail.com
+[commit]
+	gpgsign = true
+[gpg]
+	program = gpg

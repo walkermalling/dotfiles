@@ -32,48 +32,58 @@ This adds melpa, loads packages, and installs all the packages I want. =package-
 
 #+BEGIN_SRC emacs-lisp
 
+
   (require 'package)
+
   (add-to-list 'package-archives
 	       '("melpa" . "https://melpa.org/packages/") t)
   (add-to-list 'package-archives
 	       '("org" . "http://orgmode.org/elpa/") t)
 
-  (when (not package-archive-contents)
-      (package-refresh-contents))
+  (add-to-list 'load-path "~/.emacs.d/elpa")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/bin")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/mu4e")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/async-20180408.844")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/dash-20180413.30")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/epl-20180205.1249")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/evil-20180408.1423")
+  ;; (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/exec-path-from-shell-20180323.1904")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/ghc-20180121.418")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/ghub-20180414.1654")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/git-commit-20180411.1649")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/goto-chg-20180105.1033")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/haskell-mode-20180406.2222")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/helm-20180413.335")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/helm-core-20180414.2257")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/helm-projectile-20180407.1842")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/let-alist-1.0.5")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/magit-20180416.852")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/magit-popup-20180329.1302")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/nix-mode-20180403.1741")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/org-plus-contrib-20180416")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/pkg-info-20150517.443")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/popup-20160709.729")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/powerline-20180321.1948")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/projectile-20180324.2226")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/s-20180406.108")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/solarized-theme-20180316.859")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/spaceline-20180412.526")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/undo-tree-0.6.5")
+  (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/with-editor-20180414.757")
 
-  (setf package-selected-packages '(org-plus-contrib
-                                    haskell-mode
-                                    intero-mode
-                                    magit
-                                    solarized-theme
-                                    rebecca
-                                    projectile
-                                    helm
-                                    helm-config
-                                    helm-projectile
-                                    spaceline
-                                    restclient
-                                    js2-mode
-                                    rjsx-mode
-                                    web-mode
-                                    flycheck
-                                    exec-path-from-shell
-                                    tuareg
-                                    ensime
-                                    pinentry
-                                    evil
-                                    markdown-mode
-                                    undo-tree
-                                    ))
 
-  (package-install-selected-packages)
-  (exec-path-from-shell-initialize)
-  ;; (add-to-list 'exec-path "~/.nix-profile/bin")
   (add-to-list 'exec-path "/usr/local/bin")
+  (add-to-list 'exec-path "/Users/walkermalling/.nix-profile/bin")
 
-  (projectile-global-mode)
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize))
+
+  ;; (projectile-global-mode)
   (setq projectile-completion-system 'helm)
-  (helm-projectile-on)
+  ;; (helm-projectile-on)
 
   (require 'evil)
   (evil-mode 1)
@@ -81,8 +91,13 @@ This adds melpa, loads packages, and installs all the packages I want. =package-
   (require 'helm-config)
   (helm-mode 1)
 
+  (defun org-drill-all
+    (interactive)
+    (org-drill
+      (directory-files-recursively "~/Dropbox/Org/dev/" "\.org$")))
+
   (require 'cl)
-  ;; (require 'org-drill)
+  (require 'org-drill)
 
 #+END_SRC
 
@@ -105,22 +120,24 @@ General Flycheck/Eslint setup tips:
 http://codewinds.com/blog/2015-04-02-emacs-flycheck-eslint-jsx.html#flycheck_usage
 
 #+BEGIN_SRC emacs-lisp
-(defun my/use-eslint-from-node-modules ()
-  (let* ((root (locate-dominating-file
-                (or (buffer-file-name) default-directory)
-                "node_modules"))
-         (eslint (and root
-                      (expand-file-name "node_modules/eslint/bin/eslint.js"
-                                        root))))
-    (when (and eslint (file-executable-p eslint))
-      (setq-local flycheck-javascript-eslint-executable eslint))))
-(add-hook 'flycheck-mode-hook #'my/use-eslint-from-node-modules)
+;;(defun my/use-eslint-from-node-modules ()
+;;  (let* ((root (locate-dominating-file
+;;                (or (buffer-file-name) default-directory)
+;;                "node_modules"))
+;;         (eslint (and root
+;;                      (expand-file-name "node_modules/eslint/bin/eslint.js"
+;;                                        root))))
+;;    (when (and eslint (file-executable-p eslint))
+;;      (setq-local flycheck-javascript-eslint-executable eslint))))
+;;(add-hook 'flycheck-mode-hook #'my/use-eslint-from-node-modules)
 
 #+END_SRC
 
 * Appearance
 
 #+BEGIN_SRC emacs-lisp
+
+(add-to-list 'custom-theme-load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/solarized-theme-20180316.859")
 
 (require 'spaceline-config)
   (setf powerline-default-separator 'wave)
@@ -145,8 +162,8 @@ http://codewinds.com/blog/2015-04-02-emacs-flycheck-eslint-jsx.html#flycheck_usa
 #+BEGIN_SRC emacs-lisp
 
 (setq-default indent-tabs-mode nil)
-(ido-mode 1)
-(add-hook 'after-init-hook #'global-flycheck-mode)
+;; (ido-mode 1)
+;; (add-hook 'after-init-hook #'global-flycheck-mode)
 
 #+END_SRC
 
@@ -187,31 +204,56 @@ http://codewinds.com/blog/2015-04-02-emacs-flycheck-eslint-jsx.html#flycheck_usa
       org-agenda-skip-scheduled-if-deadline-is-shown t
       org-agenda-text-search-extra-files (directory-files-recursively "~/Dropbox/Org/" "\.org$"))
 
+;; from https://lists.gnu.org/archive/html/emacs-orgmode/2010-11/msg01351.html
+;; any headline with level <= 2 is a target
+(setq org-refile-targets '((nil :maxlevel . 2)
+                                ; all top-level headlines in the
+                                ; current buffer are used (first) as a
+                                ; refile target
+                           (org-agenda-files :maxlevel . 2)))
+
+;; provide refile targets as paths, including the file name
+;; (without directory) as level 1 of the path
+(setq org-refile-use-outline-path 'file)
+
+;; allow to create new nodes (must be confirmed by the user) as
+;; refile targets
+(setq org-refile-allow-creating-parent-nodes 'confirm)
+
 (setf org-capture-templates
 '(("c" "Clock into New Task" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
          "* TODO %?%^G\nCreated: %U\nContext: %a\n  %i" :clock-in t :clock-keep t)
+
         ("t" "Tasks" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
          "* TODO %?%^G\nCreated: %U\nContext: %a\n  %i")
+
         ("x" "MemCon" entry (file+datetree "~/Dropbox/Org/agenda/memcon.org")
          "* %?%^G\nCreated: %U")
+
         ("i" "Calendar Item/Event" entry (file+datetree "~/Dropbox/Org/agenda/calendar.org")
          "* %?%^G")
+
         ("m" "Meeting" entry (file+datetree "~/Dropbox/Org/agenda/meetings.org")
          "* %?%^G\nCreated: %U")
+
         ("d" "Dev Note" entry (file+datetree "~/Dropbox/Org/agenda/dev.org")
          "* %?%^G\nCreated: %U\nContext: %a\n %i")
+
         ("l" "Lit Note" entry (file+datetree "~/Dropbox/Org/agenda/lit.org")
          "* %?%^G\nCreated: %U")
+
         ("p" "Phil Note" entry (file+datetree "~/Dropbox/Org/agenda/phil.org")
          "* %?%^G\nCreated: %U")
-        ("r" "Random" entry (file+datetree "~/Dropbox/Org/agenda/rand.org")
-         "* %?%^G\nCreated: %U\nContext: %a\n %i")
+
+        ("g" "Generic Note" entry (file+datetree "~/Dropbox/Org/agenda/generic.org")
+         "* %?%^G\nCreated: %U")
 
         ("f" "Flashcard to current buffer" entry (file+headline (buffer-file-name) "Flash Cards")
          "* %? :drill:\nPrompt:\n** Answer") 
 
         ("b" "Add Checkbox to Clocked in Entry" item (clock) 
          "+ [ ] %? (%<%r>)" :prepend t)
+
         ("z" "Add Link To This Context to Clocked in Entry" item (clock)
          "- %a \n- %f" :prepend t)))
 
@@ -338,9 +380,52 @@ Define a node path for use with babel and define a place for babel to look for n
  '((js . t)
    (emacs-lisp . t)
    (haskell . t)
-   (scala . t)
-   (ocaml . t)
    ))
 
 #+END_SRC
+* Mu/Mu4e
 
+#+BEGIN_SRC emacs-lisp
+
+;; (add-to-list 'load-path "~/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/bin")
+
+;; (add-to-list 'exec-path "/Users/walkermalling/.nix-profile/bin/mbsync")
+
+(setf send-mail-function 'smtpmail-send-it
+	smtpmail-stream-type 'starttls
+	smtpmail-smtp-service 587
+	message-kill-buffer-on-exit t)
+
+(require 'mu4e)
+(require 'org-mu4e)
+
+(setq mail-user-agent 'mu4e-user-agent)
+
+(setq mu4e-mu-binary "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/bin/mu")
+
+(global-set-key (kbd "C-c m") 'mu4e)
+
+(setf mu4e-maildir "~/.mail"
+	mu4e-view-show-images t
+	mu4e-update-interval 300
+	mu4e-view-show-addresses t
+	mu4e-hide-index-messages t
+	mu4e-decryption-policy 'ask
+	mu4e-compose-format-flowed t
+	mu4e-context-policy 'ask-if-none
+	mu4e-get-mail-command "mbsync -a"
+	mu4e-change-filenames-when-moving t
+
+	mu4e-compose-context-policy 'ask-if-none
+	mu4e-headers-fields '((:human-date	. 15)
+			      (:flags		. 6)
+			      (:from		. 30)
+			      (:thread-subject	. nil)))
+
+(setf mu4e-sent-folder "/sent"
+      mu4e-drafts-folder "/drafts"
+      mu4e-trash-folder "/trash"
+      user-full-name "Walker Malling"
+      user-mail-address "walker.malling@gmail.com")
+
+#+END_SRC

@@ -1,5 +1,5 @@
-#+AUTHOR: Walker Malling
 #+TITLE: Emacs Configuration
+#+AUTHOR: Walker Malling
 
 My =init.el= file uses =org-babel-load-file= to load the Emacs Lisp source code blocks in this document.  
 
@@ -7,9 +7,21 @@ Based on work by @itscaleb https://github.com/itscaleb/emacs.d
 
 To look up what variables are used for, invoke =\C-h v= and type the variable name.
 
+Useful links:
+
+https://www.gnu.org/software/emacs/
+https://www.gnu.org/software/emacs/manual/html_node/emacs/index.html
+https://www.emacswiki.org/emacs/SiteMap
+
+https://orgmode.org/
+https://orgmode.org/worg/
+https://orgmode.org/worg/org-contrib/
+
+https://www.gnu.org/software/emacs/manual/html_node/eintr/
+
 * Customize
 
-Tell emacs to put any customization options in a separate file
+Tell emacs to put any customization options in a separate file.
 
 #+BEGIN_SRC emacs-lisp
   (setf custom-file "~/.emacs.d/emacs-custom.el")
@@ -18,7 +30,7 @@ Tell emacs to put any customization options in a separate file
 
 * Startup
 
-I want my inital buffer to be my agenda for today
+I want my inital buffer to be my agenda for today (see the orgmode section of this doc for more about agendas).
 
 #+BEGIN_SRC emacs-lisp
 (setq inhibit-splash-screen t)
@@ -74,31 +86,120 @@ This adds melpa, loads packages, and installs all the packages I want. =package-
   (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/undo-tree-0.6.5")
   (add-to-list 'load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/with-editor-20180414.757")
 
+#+END_SRC
 
-  (add-to-list 'exec-path "/usr/local/bin")
-  (add-to-list 'exec-path "/Users/walkermalling/.nix-profile/bin")
+* Exec Path From Shell
 
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize))
+Make various commands usually available in your shell also available to emacs.
 
-  ;; (projectile-global-mode)
-  (setq projectile-completion-system 'helm)
-  ;; (helm-projectile-on)
+https://github.com/purcell/exec-path-from-shell
 
-  (require 'evil)
-  (evil-mode 1)
+Explicitly add nix packages.
 
+#+BEGIN_SRC emacs-lisp
+ (exec-path-from-shell-initialize)
+
+ (add-to-list 'exec-path "~/.nix-profile/bin")
+ (add-to-list 'exec-path "/usr/local/bin")
+
+ (when (memq window-system '(mac ns x))
+   (exec-path-from-shell-initialize))
+#+END_SRC
+
+* Appearance
+
+Configure spaceline; turn off a lot of things (menu bar, scroll bar), load a theme, etc.
+
+#+BEGIN_SRC emacs-lisp
+
+(add-to-list 'custom-theme-load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/solarized-theme-20180316.859")
+
+(require 'spaceline-config)
+
+(setf powerline-default-separator 'wave)
+
+(when (eq system-type 'darwin) ; fix for spaceline on mac
+    (setf ns-use-srgb-colorspace nil))
+
+;; set spaceline theme
+(spaceline-spacemacs-theme)
+
+;; tried zen mode for a while, but solarized is best; matches terminal theme
+;; this is set to solarized light because I do most of my work at work during the day
+;; but it is easy to swich to solarized-dark in low light settings, which makes for consistent experience
+(load-theme 'solarized-light t) 
+
+;; highlight matching parentheses
+(show-paren-mode t)
+
+;; turn off menu bar
+(menu-bar-mode -1)
+
+;; turn off toolbar
+(tool-bar-mode -1)
+
+;; I forget what this does
+(size-indication-mode t)
+
+;; turn off scrollbar: must have when you are jockeying multiple buffers in a single frame
+(scroll-bar-mode -1)
+
+#+END_SRC
+
+* Basic Editing 
+
+Turn on auto-revert so that changes to files outside of emacs are reflected in the current buffer.
+
+Get ride of tabs.
+
+Enable flycheck.
+
+#+BEGIN_SRC emacs-lisp
+
+(global-auto-revert-mode t)
+
+(setq-default indent-tabs-mode nil)
+
+;; (ido-mode 1)
+
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
+#+END_SRC
+
+* Evil mode 
+
+I confess I had my doubts about evil mode (vim keybindings inside emacs), thinking it would be like driving a car with a joystick. But it turns out to be really solid package with great defaults.  
+
+#+BEGIN_SRC emacs-lisp
+(require 'evil)
+(evil-mode 1)
+#+END_SRC
+
+* Projectile
+
+This package is takes emacs a tiny step towards an IDE, giving it the concept of a project context.
+
+https://github.com/bbatsov/projectile
+
+It has many more features than I typically use.
+
+#+BEGIN_SRC emacs-lisp
+;; (projectile-global-mode)
+(setq projectile-completion-system 'helm)
+
+;; leave helm-projectile off for now 
+;; (helm-projectile-on)
+#+END_SRC
+
+* Helm mode
+
+I had my doubts about helm, but its great.
+
+https://github.com/emacs-helm/helm/wiki#general-concept
+
+#+BEGIN_SRC emacs-lisp
   (require 'helm-config)
   (helm-mode 1)
-
-  (defun org-drill-all
-    (interactive)
-    (org-drill
-      (directory-files-recursively "~/Dropbox/Org/dev/" "\.org$")))
-
-  (require 'cl)
-  (require 'org-drill)
-
 #+END_SRC
 
 * Pinentry
@@ -110,64 +211,8 @@ Enable pinentry
 (pinentry-start)
 #+end_src
 
-* Flycheck Eslint
-
-Use flycheck for linting.  The airbnb-extension seems to always have problems.  This snippet preferes using the local instead of the global eslint module.
-
-http://emacs.stackexchange.com/questions/21205/flycheck-with-file-relative-eslint-executable
-
-General Flycheck/Eslint setup tips:
-http://codewinds.com/blog/2015-04-02-emacs-flycheck-eslint-jsx.html#flycheck_usage
-
-#+BEGIN_SRC emacs-lisp
-;;(defun my/use-eslint-from-node-modules ()
-;;  (let* ((root (locate-dominating-file
-;;                (or (buffer-file-name) default-directory)
-;;                "node_modules"))
-;;         (eslint (and root
-;;                      (expand-file-name "node_modules/eslint/bin/eslint.js"
-;;                                        root))))
-;;    (when (and eslint (file-executable-p eslint))
-;;      (setq-local flycheck-javascript-eslint-executable eslint))))
-;;(add-hook 'flycheck-mode-hook #'my/use-eslint-from-node-modules)
-
-#+END_SRC
-
-* Appearance
-
-#+BEGIN_SRC emacs-lisp
-
-(add-to-list 'custom-theme-load-path "/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/share/emacs/site-lisp/elpa/solarized-theme-20180316.859")
-
-(require 'spaceline-config)
-  (setf powerline-default-separator 'wave)
-  (when (eq system-type 'darwin) ; fix for spaceline on mac
-    (setf ns-use-srgb-colorspace nil))
-  (spaceline-spacemacs-theme)
-(load-theme 'solarized-light t)
-(show-paren-mode t)
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(size-indication-mode t)
-(scroll-bar-mode -1)
-
-#+END_SRC
-
-* Basic Editing 
-
-- turn tabs off
-- use ido 
-- turn on flycheck
-
-#+BEGIN_SRC emacs-lisp
-
-(setq-default indent-tabs-mode nil)
-;; (ido-mode 1)
-;; (add-hook 'after-init-hook #'global-flycheck-mode)
-
-#+END_SRC
-
 * Keybindings
+
 #+BEGIN_SRC emacs-lisp
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-ca" 'org-agenda)
@@ -183,27 +228,143 @@ http://codewinds.com/blog/2015-04-02-emacs-flycheck-eslint-jsx.html#flycheck_usa
 #+END_SRC
 
 * Org Mode
-- have org mode apply syntax highlighting to src blocks
-- defined todo keywords and their appearance
-- persist clock for clocking time
+
+Orgmode can do just about anything; this config section may seem long but it really scratches the surface.  In the future I'd like to spendmore time being specific about custom agenda views, effort estimates, etc.
+
+----
+
+Set the todo keywords sequence, as well as styles for keywords.
+
+"ELEC" is short for electric (Twin Peaks fan), or maybe "elected for work".  
+
+"HOLD" used to be "Blacklodge", but I wanted all todo item descriptions to line up in my agenda view.
+
+I want work that I've archived to show up in reports, so I add the archive file to ~org-agenda-files~.
+
+/Temporarily/ I want to be able to demo agenda functions in my demo file, so add that to ~org-agenda-files~ as well.
+
+Exapand teh scope of text search to the whole /org directory.
 
 #+BEGIN_SRC emacs-lisp
 
-(setq org-hide-emphasis-markers t)
-(setq org-src-fontify-natively t)
-(setq org-list-allow-alphabetical t)
-
-(setf org-todo-keywords '((sequence "TODO(t)" "BLACKLODGE(b)" "ELECTRIC(f)" "DONE(d)"))
+(setf org-todo-keywords '((sequence "TODO(t)" "HOLD(h)" "ELEC(e)" "DONE(d)"))
       org-todo-keyword-faces '(
-                               ("BLACKLODGE" . (:foreground "gray"))
-                               ("ELECTRIC" . (:foreground "red" :weight bold :style italic))
-                               ("DONE" . (:foreground "white" :style ))
+                               ("HOLD" . (:foreground "gray"))
+                               ("ELEC" . (:foreground "red" :weight bold :style italic))
+                               ("DONE" . (:foreground "black" :style ))
                                ("TODO" . (:foreground "orange" :weight bold)))
       org-startup-indented t
-      org-agenda-files '("~/Dropbox/Org/agenda")
+      org-agenda-files '("~/Dropbox/Org/agenda" )
       org-agenda-skip-scheduled-if-deadline-is-shown t
       org-agenda-text-search-extra-files (directory-files-recursively "~/Dropbox/Org/" "\.org$"))
 
+(add-to-list 'org-agenda-files "~/Dropbox/Org/emacs-org-mode-demo.org" "~/Dropbox/Org/agenda/tasks.org_archive")
+
+#+END_SRC
+
+
+Configure my capture templates:
+
+| c | clock into new task                               | ~/org/agenda/tasks.org~             |
+| t | new task                                          | ~/org/agenda/tasks.org~             |
+| x | memcon (memorandum of conversation                | ~/org/agenda/memcon.org~            |
+| l | daily log                                         | ~/org/agenda/loglady.org~           |
+| m | meeting or calendar event                         | ~/org/agenda/calendar.org~          |
+| d | dev note (general how tos, problems solved, etc.) | ~/org/agenda/dev.org~               |
+| p | philosophical or literary note                    | ~/org/agenda/phil.org~              |
+| g | glossary                                          | ~/org/notes/notes.org#Glossary~     |
+| r | reading note                                      | ~/org/notes/notes.org#Reading List~ |
+| n | generic note                                      | ~/org/notes/notes.org#Notes~        |
+| f | flashcard                                         | ~/org/notes/notes.org#Flashcards~   |
+| z | add link to this context to clocked in entry      | clocked-in item                   |
+
+Todos should create a descriptive headline, but everything else should be filed by datetree.
+
+Generally, ask for a ~Title~ and a ~tag~, insert ~Created~ datetime.
+
+I used to capture context in every note, but that was inconsistently useful, so now I can "capture" a current context and add it to the clocked in item.
+
+#+BEGIN_SRC emacs-lisp
+
+(setf org-capture-templates
+'(("c" "Clock into New Task" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
+         "* TODO %^{Title} %^G\nCreated: %U \n  %i\n%?" :clock-in t :clock-keep t)
+        ("t" "Tasks" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
+         "* TODO %^{Title} %^G\nCreated: %U \n %i\n%?")
+        ("x" "MemCon" entry (file+datetree "~/Dropbox/Org/agenda/memcon.org")
+         "* %^{Descriptive/Context} %^G\nDate: %t\n%?")
+        ("l" "LogLady" entry (file+datetree "~/Dropbox/Org/agenda/loglady.org")
+         "* Log\nLearned: %?\nAccomplished: \nTime: \nAnalysis: ")
+        ("m" "Meeting/Calendar Event" entry (file+datetree "~/Dropbox/Org/agenda/calendar.org")
+         "* %^{Meeting or Event Title} %^G\n%^t%?")
+        ("d" "Dev Note" entry (file+datetree "~/Dropbox/Org/agenda/dev.org")
+         "* %^{Title} %^G\nCreated: %U\nContext: %a\n %i %?")
+
+        ("p" "Philosophical or Literary Note" entry (file+datetree "~/Dropbox/Org/agenda/phil.org")
+         "* %?%^G\nCreated: %U")
+
+        ("g" "Gloss (glossary)" entry (file+headline "~/Dropbox/Org/notes/notes.org" "Glossary")
+         "* %^{Title} %^G\nContext: %a\n %i %?")
+        ("r" "Reading (article/book)" entry (file+headline "~/Dropbox/Org/notes/notes.org" "Reading List")
+         "* %^{Title} %^G\nContext: %a\n %i %?")
+
+        ("n" "Notes (generic)" entry (file+headline "~/Dropbox/Org/notes/notes.org" "Notes")
+         "* %^{Title} %^G\nContext: %a\n %i %?")
+        ("f" "Flashcard" entry (file+headline "~/Dropbox/Org/notes/notes.org" "Flashcards")
+         "* %^{Title} %^g \n%i %?\n** Answer \n")
+  
+        ("z" "Add Link To This Context to Clocked in Entry" item (clock)
+         "- %a \n- %f" :prepend t)))
+
+#+END_SRC
+
+Set clock idle time to 10 minute intervals.
+
+Configure the ~PRIORITY~ property on todos: A through H, but use the ~fancy-priorities~ package to designate unicode characters for each priority.
+
+#+begin_src emacs-lisp
+
+(setf org-clock-idle-time 10 
+      org-lowest-priority ?H
+      org-default-priority ?H
+      org-log-done 'time
+      org-agenda-skip-scheduled-if-deadline-is-shown t
+      org-clock-persist 'history)
+
+(org-clock-persistence-insinuate)
+
+(require 'org-fancy-priorities)
+(setq org-fancy-priorities-list '("█" "▇" "▆" "▅" "▄" "▃" "▂" "▁"))
+(add-hook 'org-mode-hook 'org-fancy-priorities-mode)
+
+;;(use-package org-fancy-priorities
+;;  :ensure t
+;;  :hook
+;;  (org-mode . org-fancy-priorities-mode)
+;;  :config
+;;  (setq org-fancy-priorities-list '("⚡" "⬆" "⬇")))
+
+#+end_src
+
+
+I would like to periodically clean up my ~tasks.org~ file.  Here is a function which goes through and archives all tasks marked as "DONE"
+
+#+BEGIN_SRC emacs-lisp
+
+(defun org-archive-done-tasks ()
+
+  (interactive)
+  (org-map-entries
+   (lambda ()
+     (org-archive-subtree)
+     (setq org-map-continue-from (outline-previous-heading)))
+   "/DONE" 'tree))
+
+#+END_SRC
+
+Configure refile (~C-c C-w~).
+
+#+BEGIN_SRC emacs-lisp
 ;; from https://lists.gnu.org/archive/html/emacs-orgmode/2010-11/msg01351.html
 ;; any headline with level <= 2 is a target
 (setq org-refile-targets '((nil :maxlevel . 2)
@@ -219,69 +380,62 @@ http://codewinds.com/blog/2015-04-02-emacs-flycheck-eslint-jsx.html#flycheck_usa
 ;; allow to create new nodes (must be confirmed by the user) as
 ;; refile targets
 (setq org-refile-allow-creating-parent-nodes 'confirm)
-
-(setf org-capture-templates
-'(("c" "Clock into New Task" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
-         "* TODO %?%^G\nCreated: %U\nContext: %a\n  %i" :clock-in t :clock-keep t)
-
-        ("t" "Tasks" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
-         "* TODO %?%^G\nCreated: %U\nContext: %a\n  %i")
-
-        ("x" "MemCon" entry (file+datetree "~/Dropbox/Org/agenda/memcon.org")
-         "* %?%^G\nCreated: %U")
-
-        ("i" "Calendar Item/Event" entry (file+datetree "~/Dropbox/Org/agenda/calendar.org")
-         "* %?%^G")
-
-        ("m" "Meeting" entry (file+datetree "~/Dropbox/Org/agenda/meetings.org")
-         "* %?%^G\nCreated: %U")
-
-        ("d" "Dev Note" entry (file+datetree "~/Dropbox/Org/agenda/dev.org")
-         "* %?%^G\nCreated: %U\nContext: %a\n %i")
-
-        ("l" "Lit Note" entry (file+datetree "~/Dropbox/Org/agenda/lit.org")
-         "* %?%^G\nCreated: %U")
-
-        ("p" "Phil Note" entry (file+datetree "~/Dropbox/Org/agenda/phil.org")
-         "* %?%^G\nCreated: %U")
-
-        ("g" "Generic Note" entry (file+datetree "~/Dropbox/Org/agenda/generic.org")
-         "* %?%^G\nCreated: %U")
-
-        ("f" "Flashcard to current buffer" entry (file+headline (buffer-file-name) "Flash Cards")
-         "* %? :drill:\nPrompt:\n** Answer") 
-
-        ("b" "Add Checkbox to Clocked in Entry" item (clock) 
-         "+ [ ] %? (%<%r>)" :prepend t)
-
-        ("z" "Add Link To This Context to Clocked in Entry" item (clock)
-         "- %a \n- %f" :prepend t)))
+#+END_SRC
 
 
-(setf org-clock-idle-time 10
-      org-lowest-priority ?E
-      org-default-priority ?E
-      org-log-done 'time
-      org-agenda-skip-scheduled-if-deadline-is-shown t
-      org-clock-persist 'history)
 
-(org-clock-persistence-insinuate)
+Other general settings.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-hide-emphasis-markers t)
+(setq org-src-fontify-natively t)
+(setq org-list-allow-alphabetical t)
 
 ;; start flyspell in org-mode
 (add-hook 'org-mode-hook 'turn-on-flyspell)
 
 (setf ispell-personal-dictionary "~/Dropbox/Org/dictionary")
 
-;; create a function to archive all done tasks
-(defun org-archive-done-tasks ()
+#+END_SRC
 
+The following is not something I use, but I'd like to keep for reference.  It lets you configure different emphasis characters.  
+
+I was running into an issue where operators in my code blocks were conflicting with markdown syntax (such as Haskell's concatenation operator ~++~).  And while omitting strikethrough (+this is usually struck out+) is a step, the appearance of two pairs together ~++ ++~ is still automatically hidden, making the rendered code appear incorrect.
+
+See https://stackoverflow.com/questions/22491823/disable-certain-org-mode-markup?rq=1
+
+#+BEGIN_SRC emacs-lisp
+(setq org-emphasis-alist (quote (("*" bold "<b>" "</b>")
+                                 ("/" italic "<i>" "</i>")
+                                 ("_" underline "<span style=\"text-decoration:underline;\">" "</span>")
+                                 ("=" org-code "<code>" "</code>" verbatim)
+                                 ("~" org-verbatim "<code>" "</code>" verbatim))))
+#+END_SRC
+* Org Drill
+
+Trying to get in the habit of turning notes into flashcards. This tells org-drill to scan my /org directory for anything tagged with =drill=.
+
+#+BEGIN_SRC emacs-lisp
+(defun org-drill-all ()
   (interactive)
-  (org-map-entries
-   (lambda ()
-     (org-archive-subtree)
-     (setq org-map-continue-from (outline-previous-heading)))
-   "/DONE" 'tree))
+  (org-drill
+    (directory-files-recursively "~/Dropbox/Org/" "\.org$")))
 
+(require 'cl)
+(require 'org-drill)
+#+END_SRC
+
+* Gnus & Email
+
+I used to read email through gnus, with the express benefit that you can link to emails within org todo items.
+
+At the moment I'm trying to set up mu adn mu4e.
+
+#+BEGIN_SRC emacs-lisp
+;;(setq gnus-select-method
+;;           '(nnimap "stbeehive.oracle.com"
+;;           (nnimap-stream ssl)
+;;           ))
 #+END_SRC
 
 * Info Mode
@@ -293,8 +447,35 @@ Add custom directory to INFOPATH
 ;; (add-to-list 'Info-default-directory-list "~/Dropbox/Org/info/")
 #+end_src
 
+* Babel
+
+Babel is a powerful literate programming tool for emacs.  This document is loaded through babel (each ~emacs-lisp~ codeblock is evaluated and, in aggregate, constites the executed config).  But I take a lot of notes as I learn about different programming languages (currently Haskell) and this lets me embed executable examples in my notes.
+
+If you're working with javascript, you can define a node path for use with babel and define a place for babel to look for npm modules.
+
+It's a good practice with node development to re-configure where global packages are kept, do avoid needing to use ~sudo~.  If you've configured your local environment in such a way, you could use that path here and immediately have access to all your global packages.
+
+#+BEGIN_SRC emacs-lisp
+
+(setenv "NODE_PATH"
+  (concat
+    (getenv "HOME") "/org/node_modules" ":"
+    (getenv "NODE_PATH")))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((js . t)
+   (emacs-lisp . t)
+   (haskell . t)
+   (clojure . t)
+   (ditaa . t)
+   ))
+
+#+END_SRC
+
 * Notation Fonts
 
+Useful for consistently highlighting things like TODO in various codebases.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -325,6 +506,19 @@ Add custom directory to INFOPATH
 
 #+END_SRC
 
+* Haskell
+
+The only way I was able to get this work was by installing ghci directlly, in addition to using stack.
+
+So I basically have two different ghci's.
+
+#+BEGIN_SRC emacs-lisp
+
+(add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-mode))
+;; (add-to-list 'auto-mode-alist '("\\.hs\\'" . intero-mode))
+
+#+END_SRC
+
 * JavaScript
 
 Configure indentation.  Fix rjsx-mode & js-mode default indentation for switch statements.
@@ -352,44 +546,85 @@ Associate rjsx-mode to .js and .jsx files.
 
 #+END_SRC
 
-* Haskell
+* Flycheck Eslint
 
-The only way I was able to get this work was by installing ghci directlly, in addition to using stack.
+Use flycheck for linting.  The airbnb-extension seems to always have problems.  This snippet preferes using the local instead of the global eslint module.
 
-So I basically have two different ghci's.
+http://emacs.stackexchange.com/questions/21205/flycheck-with-file-relative-eslint-executable
 
-#+BEGIN_SRC emacs-lisp
-
-(add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-mode))
-;; (add-to-list 'auto-mode-alist '("\\.hs\\'" . intero-mode))
-
-#+END_SRC
-* Babel
-
-Define a node path for use with babel and define a place for babel to look for npm modules.
+General Flycheck/Eslint setup tips:
+http://codewinds.com/blog/2015-04-02-emacs-flycheck-eslint-jsx.html#flycheck_usage
 
 #+BEGIN_SRC emacs-lisp
-
-(setenv "NODE_PATH"
-  (concat
-    (getenv "HOME") "/org/node_modules" ":"
-    (getenv "NODE_PATH")))
-
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((js . t)
-   (emacs-lisp . t)
-   (haskell . t)
-   ))
+;;(defun my/use-eslint-from-node-modules ()
+;;  (let* ((root (locate-dominating-file
+;;                (or (buffer-file-name) default-directory)
+;;                "node_modules"))
+;;         (eslint (and root
+;;                      (expand-file-name "node_modules/eslint/bin/eslint.js"
+;;                                        root))))
+;;    (when (and eslint (file-executable-p eslint))
+;;      (setq-local flycheck-javascript-eslint-executable eslint))))
+;;(add-hook 'flycheck-mode-hook #'my/use-eslint-from-node-modules)
 
 #+END_SRC
+
+* Typescript
+
+#+begin_src emacs-lisp
+(defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; `M-x package-install [ret] company`
+  (company-mode +1))
+
+;; aligns annotation to the right hand side
+
+(setq company-tooltip-align-annotations t)
+
+;; formats the buffer before saving
+(add-hook 'before-save-hook 'tide-format-before-save)
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+#+end_src
+
+* Eshell-here
+
+From: https://writequit.org/articles/working-with-logs-in-emacs.html#other-packages
+
+#+begin_src emacs-lisp
+
+(defun eshell-here ()
+  "Opens up a new shell in the directory associated with the
+current buffer's file. The eshell is renamed to match that
+directory to make multiple eshell windows easier."
+  (interactive)
+  (let* ((parent (if (buffer-file-name)
+                     (file-name-directory (buffer-file-name))
+                   default-directory))
+         (height (/ (window-total-height) 3))
+         (name   (car (last (split-string parent "/" t)))))
+    (split-window-vertically (- height))
+    (other-window 1)
+    (eshell "new")
+    (rename-buffer (concat "*eshell: " name "*"))
+
+    (insert (concat "ls"))
+    (eshell-send-input)))
+
+#+end_src
+
 * Mu/Mu4e
 
 #+BEGIN_SRC emacs-lisp
 
 ;; (add-to-list 'load-path "~/nix/store/5aqvkiz4dwhk7qjjp476s9nnn8xiwvxk-emacs-packages-deps/bin")
-
-;; (add-to-list 'exec-path "/Users/walkermalling/.nix-profile/bin/mbsync")
 
 (setf send-mail-function 'smtpmail-send-it
 	smtpmail-stream-type 'starttls

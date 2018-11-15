@@ -1,346 +1,152 @@
-#+AUTHOR: Walker Malling
 #+TITLE: Emacs Configuration
-
-My =init.el= file uses =org-babel-load-file= to load the Emacs Lisp source code blocks in this document.  
-
-Based on work by @itscaleb https://github.com/itscaleb/emacs.d
-
-To look up what variables are used for, invoke =\C-h v= and type the variable name.
-
+#+AUTHOR: Walker Malling
+​
 * Customize
-
-Tell emacs to put any customization options in a separate file
-
+​
+Tell emacs to put any customization options in a separate file.
+​
 #+BEGIN_SRC emacs-lisp
-  (setf custom-file "~/.emacs.d/emacs-custom.el")
-  (load custom-file t)
+ (setf custom-file "~/.emacs.d/emacs-custom.el")
+ (load custom-file t)
 #+END_SRC
-
+​
 * Startup
-
-I want my inital buffer to be my agenda for today
-
+​
+I want my inital buffer to be my agenda for today (see the orgmode section of this doc for more about agendas).
+​
 #+BEGIN_SRC emacs-lisp
 (setq inhibit-splash-screen t)
 (add-hook 'after-init-hook '(lambda () (org-agenda-list 1)))
 (delete-other-windows)
-#+END_SRC
+(load-theme 'solarized-dark t)
 
-* Package
+(require 'server)
+(unless (server-running-p)
+  (server-start))
 
-This adds melpa, loads packages, and installs all the packages I want. =package-selected-packages= is new in Emacs 25 and makes it easy to get all your packages installed on new computers.
+(defun start-capture (template-key)
+   "Start capture with the template assigned to TEMPLATE-KEY"
+   (make-frame '((alpha . 80)(height . 10)
+		  (top . -1)(left . -10)(autoraise . t)
+		  (title . "Capture")(name . "captureframe")))
+   (select-frame-by-name "captureframe")
+   (org-capture nil template-key)
+   (delete-other-windows))
 
-#+BEGIN_SRC emacs-lisp
-
-  (require 'package)
-  (add-to-list 'package-archives
-	       '("melpa" . "https://melpa.org/packages/") t)
-  (add-to-list 'package-archives
-	       '("org" . "http://orgmode.org/elpa/") t)
-
-  (when (not package-archive-contents)
-      (package-refresh-contents))
-
-  (setf package-selected-packages '(org-plus-contrib
-                                    haskell-mode
-                                    intero-mode
-                                    magit
-                                    solarized-theme
-                                    rebecca
-                                    projectile
-                                    helm
-                                    helm-config
-                                    helm-projectile
-                                    spaceline
-                                    restclient
-                                    js2-mode
-                                    rjsx-mode
-                                    web-mode
-                                    flycheck
-                                    exec-path-from-shell
-                                    tuareg
-                                    ensime
-                                    pinentry
-                                    evil
-                                    markdown-mode
-                                    undo-tree
-                                    ))
-
-  (package-install-selected-packages)
-  (exec-path-from-shell-initialize)
-  ;; (add-to-list 'exec-path "~/.nix-profile/bin")
-  (add-to-list 'exec-path "/usr/local/bin")
-
-  (projectile-global-mode)
-  (setq projectile-completion-system 'helm)
-  (helm-projectile-on)
-
-  (require 'evil)
-  (evil-mode 1)
-
-  (require 'helm-config)
-  (helm-mode 1)
-
-  (require 'cl)
-  ;; (require 'org-drill)
+ (defadvice org-capture-finalize (after delete-capture-frame activate)
+   "Advise capture-finalize to close the frame if it is the capture frame"
+   (if (equal "captureframe" (frame-parameter nil 'name))
+	(delete-frame)))
 
 #+END_SRC
+​
 
-* Pinentry
+* Exec Path From Shell
+​
+Make various commands usually available in your shell also available to emacs.
+​
+https://github.com/purcell/exec-path-from-shell
+​
+Explicitly add nix packages.
+​
+#+BEGIN_SRC emacs-lisp
+(exec-path-from-shell-initialize)
+(add-to-list 'exec-path "~/.nix-profile/bin")
+#+END_SRC
 
-Enable pinentry
-
-#+begin_src emacs-lisp
-(setenv "INSIDE_EMACS" (format "%s,comint" emacs-version))
-(pinentry-start)
-#+end_src
-
-* Flycheck Eslint
-
-Use flycheck for linting.  The airbnb-extension seems to always have problems.  This snippet preferes using the local instead of the global eslint module.
-
-http://emacs.stackexchange.com/questions/21205/flycheck-with-file-relative-eslint-executable
-
-General Flycheck/Eslint setup tips:
-http://codewinds.com/blog/2015-04-02-emacs-flycheck-eslint-jsx.html#flycheck_usage
+* Key Binding
 
 #+BEGIN_SRC emacs-lisp
-(defun my/use-eslint-from-node-modules ()
-  (let* ((root (locate-dominating-file
-                (or (buffer-file-name) default-directory)
-                "node_modules"))
-         (eslint (and root
-                      (expand-file-name "node_modules/eslint/bin/eslint.js"
-                                        root))))
-    (when (and eslint (file-executable-p eslint))
-      (setq-local flycheck-javascript-eslint-executable eslint))))
-(add-hook 'flycheck-mode-hook #'my/use-eslint-from-node-modules)
-
+(global-set-key (kbd "C-x g") 'magit-status)
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cc" 'org-capture)
+(global-set-key "\C-cj" 'org-clock-jump-to-current-clock)
+(global-set-key "\C-xt" 'toggle-truncate-lines)
 #+END_SRC
 
 * Appearance
 
 #+BEGIN_SRC emacs-lisp
-
-(require 'spaceline-config)
-  (setf powerline-default-separator 'wave)
-  (when (eq system-type 'darwin) ; fix for spaceline on mac
-    (setf ns-use-srgb-colorspace nil))
-  (spaceline-spacemacs-theme)
-(load-theme 'solarized-light t)
 (show-paren-mode t)
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-(size-indication-mode t)
 (scroll-bar-mode -1)
-
 #+END_SRC
 
-* Basic Editing 
-
-- turn tabs off
-- use ido 
-- turn on flycheck
-
+* Editing
 #+BEGIN_SRC emacs-lisp
-
-(setq-default indent-tabs-mode nil)
-(ido-mode 1)
-(add-hook 'after-init-hook #'global-flycheck-mode)
-
+(require 'evil)
+(evil-mode 1)
 #+END_SRC
 
-* Keybindings
+* Helm 
 #+BEGIN_SRC emacs-lisp
-(global-set-key "\C-cl" 'org-store-link)
-(global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cc" 'org-capture)
-(global-set-key "\C-cg" 'org-clock-goto)
-(global-set-key "\C-cb" 'org-iswitchb)
-(global-set-key "\C-xt" 'toggle-truncate-lines)
-(global-set-key (kbd "C-x g") 'magit-status)
-(global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
-(global-set-key (kbd "M-x") #'helm-M-x)
-(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
-(global-set-key (kbd "C-x C-f") #'helm-find-files)
-#+END_SRC
+(require 'helm-config)
+(helm-mode 1)
+#+END_SRC 
 
-* Org Mode
-- have org mode apply syntax highlighting to src blocks
-- defined todo keywords and their appearance
-- persist clock for clocking time
+* Powerline 
+#+BEGIN_SRC emacs-lisp
+(setf powerline-default-separator 'wave)
+(spaceline-spacemacs-theme)
+#+END_SRC 
 
+* Projectile 
+#+BEGIN_SRC emacs-lisp
+(setq projetile-completion-system 'helm)
+#+END_SRC 
+
+* Org 
 #+BEGIN_SRC emacs-lisp
 
-(setq org-hide-emphasis-markers t)
-(setq org-src-fontify-natively t)
-(setq org-list-allow-alphabetical t)
+(defun org-drill-all ()
+  (interactive)
+  (org-drill
+  (directory-files-recursively "~/Dropbox/Org/" "\.org$")))
 
-(setf org-todo-keywords '((sequence "TODO(t)" "BLACKLODGE(b)" "ELECTRIC(f)" "DONE(d)"))
+(require 'cl)
+(require 'org-drill)
+;;(require 'org-habit)
+
+(setf org-todo-keywords
+  '((sequence "TODO...(t)" "BLOCKED(b)" "ELECTRIC(a)" "DONE...(d)"))
       org-todo-keyword-faces '(
-                               ("BLACKLODGE" . (:foreground "gray"))
+                               ("BLOCKED" . (:foreground "gray"))
                                ("ELECTRIC" . (:foreground "red" :weight bold :style italic))
-                               ("DONE" . (:foreground "white" :style ))
-                               ("TODO" . (:foreground "orange" :weight bold)))
+                               ("DONE...." . (:foreground "black" :style ))
+                               ("TODO...." . (:foreground "orange" :weight bold)))
       org-startup-indented t
-      org-agenda-files '("~/Dropbox/Org/agenda")
+      org-agenda-files '("~/Dropbox/Org/")
       org-agenda-skip-scheduled-if-deadline-is-shown t
       org-agenda-text-search-extra-files (directory-files-recursively "~/Dropbox/Org/" "\.org$"))
 
-(setf org-capture-templates
-'(("c" "Clock into New Task" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
-         "* TODO %?%^G\nCreated: %U\nContext: %a\n  %i" :clock-in t :clock-keep t)
-        ("t" "Tasks" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
-         "* TODO %?%^G\nCreated: %U\nContext: %a\n  %i")
-        ("x" "MemCon" entry (file+datetree "~/Dropbox/Org/agenda/memcon.org")
-         "* %?%^G\nCreated: %U")
-        ("i" "Calendar Item/Event" entry (file+datetree "~/Dropbox/Org/agenda/calendar.org")
-         "* %?%^G")
-        ("m" "Meeting" entry (file+datetree "~/Dropbox/Org/agenda/meetings.org")
-         "* %?%^G\nCreated: %U")
-        ("d" "Dev Note" entry (file+datetree "~/Dropbox/Org/agenda/dev.org")
-         "* %?%^G\nCreated: %U\nContext: %a\n %i")
-        ("l" "Lit Note" entry (file+datetree "~/Dropbox/Org/agenda/lit.org")
-         "* %?%^G\nCreated: %U")
-        ("p" "Phil Note" entry (file+datetree "~/Dropbox/Org/agenda/phil.org")
-         "* %?%^G\nCreated: %U")
-        ("r" "Random" entry (file+datetree "~/Dropbox/Org/agenda/rand.org")
-         "* %?%^G\nCreated: %U\nContext: %a\n %i")
-
-        ("f" "Flashcard to current buffer" entry (file+headline (buffer-file-name) "Flash Cards")
-         "* %? :drill:\nPrompt:\n** Answer") 
-
-        ("b" "Add Checkbox to Clocked in Entry" item (clock) 
-         "+ [ ] %? (%<%r>)" :prepend t)
-        ("z" "Add Link To This Context to Clocked in Entry" item (clock)
-         "- %a \n- %f" :prepend t)))
-
-
-(setf org-clock-idle-time 10
-      org-lowest-priority ?E
-      org-default-priority ?E
+(setf org-clock-idle-time 10 
       org-log-done 'time
       org-agenda-skip-scheduled-if-deadline-is-shown t
-      org-clock-persist 'history)
+      org-clock-persist 'history
+      org-hide-emphasis-markers t
+      org-list-allow-alphabetical t
+      ispell-personal-dictionary "~/Dropbox/Org/dictionary")
 
-(org-clock-persistence-insinuate)
+(setf org-capture-templates
+      '(("c" "Clock into New Task" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
+      "* TODO %^{Title} %^G\nCreated: %U \n  %i\n%?" :clock-in t :clock-keep t)
+      ("t" "Tasks" entry (file+headline "~/Dropbox/Org/agenda/tasks.org" "Tasks")
+      "* TODO %^{Title} %^G\nCreated: %U \n %i\n%?")
+      ("m" "Meeting/Calendar Event" entry (file+datetree "~/Dropbox/Org/agenda/calendar.org")
+      "* %^{Meeting or Event Title} %^G\n%^t%?")
+      ("d" "Note" entry (file+datetree "~/Dropbox/Org/notes/notes.org")
+      "* %^{Title} %^G\nCreated: %U\nContext: %a\n %i %?")
+      ("r" "Reading Log (article/book)" entry (file+headline "~/Dropbox/Org/notes/notes.org" "Reading List")
+      "* %^{Title} %^G\nContext: %a\n %i %?")
+      ("f" "Flashcard" entry (file+headline "~/Dropbox/Org/notes/notes.org" "Flashcards")
+      "* %^{Title} %^g \n%i %?\n** Answer \n")
+      ("z" "Add Link To This Context to Clocked in Entry" item (clock)
+      "- %a \n- %f" :prepend t)))
 
-;; start flyspell in org-mode
-(add-hook 'org-mode-hook 'turn-on-flyspell)
+(setq org-refile-targets '((nil :maxlevel . 9)
+                                (org-agenda-files :maxlevel . 9)))
+(setq org-outline-path-complete-in-steps nil)         ; Refile in a single go
+(setq org-refile-use-outline-path t)                  ; Show full paths for refiling
 
-(setf ispell-personal-dictionary "~/Dropbox/Org/dictionary")
-
-;; create a function to archive all done tasks
-(defun org-archive-done-tasks ()
-
-  (interactive)
-  (org-map-entries
-   (lambda ()
-     (org-archive-subtree)
-     (setq org-map-continue-from (outline-previous-heading)))
-   "/DONE" 'tree))
-
-#+END_SRC
-
-* Info Mode
-
-Add custom directory to INFOPATH
-
-#+begin_src emacs-lisp
-;; disable this and install sicp from melpa
-;; (add-to-list 'Info-default-directory-list "~/Dropbox/Org/info/")
-#+end_src
-
-* Notation Fonts
-
-
-#+BEGIN_SRC emacs-lisp
-
-(setq fixme-modes '(emacs-lisp-mode js2-mode rjsx-mode org-mode haskell-mode))
-(make-face 'font-lock-fixme-face)
-(make-face 'font-lock-study-face)
-(make-face 'font-lock-important-face)
-(make-face 'font-lock-question-face)
-(make-face 'font-lock-note-face)
-(make-face 'font-lock-see-face)
-(mapc (lambda (mode)
-        (font-lock-add-keywords
-         mode
-         '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
-           ("\\<\\(STUDY\\)" 1 'font-lock-study-face t)
-           ("\\<\\(IMPORTANT\\)" 1 'font-lock-important-face t)
-           ("\\<\\(QUESTION\\)" 1 'font-lock-question-face t)
-           ("\\<\\(SEE\\)" 1 'font-lock-see-face t)
-           ("\\<\\(NOTE\\)" 1 'font-lock-note-face t)
-           ("\\<\\(COMMENT\\)" 1 'font-lock-note-face t))))
-      fixme-modes)
-(modify-face 'font-lock-fixme-face "#D64C2A" nil nil t nil t nil nil)
-(modify-face 'font-lock-study-face "Yellow" nil nil t nil t nil nil)
-(modify-face 'font-lock-important-face "Yellow" nil nil t nil t nil nil)
-(modify-face 'font-lock-question-face "#ffa500" nil nil t nil t nil nil)
-(modify-face 'font-lock-see-face "#88C9F0" nil nil t nil t nil nil)
-(modify-face 'font-lock-note-face "#8ABB93" nil nil t nil t nil nil)
-
-#+END_SRC
-
-* JavaScript
-
-Configure indentation.  Fix rjsx-mode & js-mode default indentation for switch statements.
-
-Associate rjsx-mode to .js and .jsx files.
-
-#+BEGIN_SRC emacs-lisp
-
-(setq js2-basic-offset 2)
-(setq js-switch-indent-offset 2)
-
-;; JSON files are opened with js-mode
-(add-hook 'js-mode-hook
-          (lambda ()
-            (make-local-variable 'js-indent-level)
-            (setq js-indent-level 2)))
-
-(add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode))
-(add-to-list 'auto-mode-alist '("\\.jsx\\'" . rjsx-mode))
-(add-to-list 'interpreter-mode-alist '("node" . rjsx-mode))
-
-(add-to-list 'auto-mode-alist '("\\.hbs\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
-
-#+END_SRC
-
-* Haskell
-
-The only way I was able to get this work was by installing ghci directlly, in addition to using stack.
-
-So I basically have two different ghci's.
-
-#+BEGIN_SRC emacs-lisp
-
-(add-to-list 'auto-mode-alist '("\\.hs\\'" . haskell-mode))
-;; (add-to-list 'auto-mode-alist '("\\.hs\\'" . intero-mode))
-
-#+END_SRC
-* Babel
-
-Define a node path for use with babel and define a place for babel to look for npm modules.
-
-#+BEGIN_SRC emacs-lisp
-
-(setenv "NODE_PATH"
-  (concat
-    (getenv "HOME") "/org/node_modules" ":"
-    (getenv "NODE_PATH")))
-
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((js . t)
-   (emacs-lisp . t)
-   (haskell . t)
-   (scala . t)
-   (ocaml . t)
-   ))
-
-#+END_SRC
-
+      #+END_SRC

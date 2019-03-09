@@ -26,7 +26,7 @@ I want my inital buffer to be my agenda for today (see the orgmode section of th
 
 (defun start-capture (template-key)
    "Start capture with the template assigned to TEMPLATE-KEY"
-   (make-frame '((alpha . 80)(height . 10)
+   (make-frame '((alpha . 90)(height . 30)
 		  (top . -1)(left . -10)(autoraise . t)
 		  (title . "Capture")(name . "captureframe")))
    (select-frame-by-name "captureframe")
@@ -38,9 +38,24 @@ I want my inital buffer to be my agenda for today (see the orgmode section of th
    (if (equal "captureframe" (frame-parameter nil 'name))
 	(delete-frame)))
 
+(yas-global-mode 1)
+
 #+END_SRC
 ​
+* Backup Directory 
+I don't want to clutter my filetree with backup files, so store all of them in the same place.
+https://www.emacswiki.org/emacs/BackupDirectory
 
+#+begin_src emacs-lisp
+(setq
+   backup-by-copying t      ; don't clobber symlinks
+   backup-directory-alist
+    '(("." . "~/.backups-emacs/"))    ; don't litter my fs tree
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t)       ; use versioned backups
+#+end_src
 * Exec Path From Shell
 ​
 Make various commands usually available in your shell also available to emacs.
@@ -61,7 +76,11 @@ Explicitly add nix packages.
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cc" 'org-capture)
 (global-set-key "\C-cj" 'org-clock-jump-to-current-clock)
+(global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-xt" 'toggle-truncate-lines)
+(global-set-key (kbd "M-x") #'helm-M-x)
+(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+(global-set-key (kbd "C-x C-f") #'helm-find-files)
 #+END_SRC
 
 * Appearance
@@ -78,6 +97,14 @@ Explicitly add nix packages.
 (require 'evil)
 (evil-mode 1)
 #+END_SRC
+
+* Yasnippet
+
+#+begin_src emacs-lisp
+
+(setq yas-snippet-dirs
+      '("~/.emacs.d/snippets"))
+#+end_src
 
 * Helm 
 #+BEGIN_SRC emacs-lisp
@@ -109,14 +136,14 @@ Explicitly add nix packages.
 ;;(require 'org-habit)
 
 (setf org-todo-keywords
-  '((sequence "TODO...(t)" "BLOCKED(b)" "ELECTRIC(a)" "DONE...(d)"))
+  '((sequence "TODO(t)" "BLOCKED(b)" "ELECTRIC(a)" "DONE(d)"))
       org-todo-keyword-faces '(
                                ("BLOCKED" . (:foreground "gray"))
                                ("ELECTRIC" . (:foreground "red" :weight bold :style italic))
-                               ("DONE...." . (:foreground "black" :style ))
-                               ("TODO...." . (:foreground "orange" :weight bold)))
+                               ("DONE" . (:foreground "black" :style ))
+                               ("TODO" . (:foreground "orange" :weight bold)))
       org-startup-indented t
-      org-agenda-files '("~/Dropbox/Org/")
+      org-agenda-files '("~/Dropbox/Org/agenda")
       org-agenda-skip-scheduled-if-deadline-is-shown t
       org-agenda-text-search-extra-files (directory-files-recursively "~/Dropbox/Org/" "\.org$"))
 
